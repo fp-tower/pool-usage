@@ -1,6 +1,6 @@
 package example
 
-import cats.effect.{ExitCode, IO, IOApp}
+import cats.effect.{ContextShift, ExitCode, IO, IOApp}
 import cats.implicits._
 
 import scala.concurrent.duration._
@@ -15,14 +15,14 @@ object UnsafeRunDeadLock extends IOApp {
   def run(args: List[String]): IO[ExitCode] =
     1.to(20)
       .toList
-      .parTraverse_(unsafeBlocking)  // TODO can't reproduce
+      .parTraverse_(unsafeBlocking) // dead lock with unsafeBlocking but not with blocking
       .as(ExitCode.Success)
 
   def unsafeBlocking(i: Int): IO[Unit] =
-    IO { blockingIO(i).unsafeRunSync() }
+    IO { blocking(i).unsafeRunSync() }
 
-  def blockingIO(i: Int): IO[Unit] =
-    IO {
+  def blocking(i: Int): IO[Unit] =
+    ContextShift[IO].shift *> IO {
       println(s"Started $i")
       Thread.sleep(2.seconds.toMillis)
       println(s"Completed $i")
