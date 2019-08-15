@@ -9,6 +9,7 @@ lazy val root = (project in file("."))
   .settings(
     name := "pool-usage",
     libraryDependencies ++= Seq(
-      catsEffect
+      catsEffect,
+      scalaTest,
     )
   )
